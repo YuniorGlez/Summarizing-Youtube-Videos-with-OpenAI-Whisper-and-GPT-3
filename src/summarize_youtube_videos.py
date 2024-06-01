@@ -25,9 +25,9 @@ def transcribe_audio(file_path):
     )
     return response.text
 
-def summarize_text(transcript):
+def summarize_text(transcript, language, summary_type):
     system_prompt = "I would like for you to assume the role of a Life Coach"
-    user_prompt = f"""Generate a concise summary of the text below.
+    user_prompt = f"""Generate a {summary_type} summary of the text below in {language}.
     Text: {transcript}
     
     Add a title to the summary.
@@ -36,7 +36,6 @@ def summarize_text(transcript):
     Begin with a short introduction explaining the topic. If you can, use bullet points to list important details,
     and finish your summary with a concluding sentence"""
     
-    print('summarizing ... ')
     response = client.chat.completions.create(
         model=OPENAI_MODEL,
         messages=[
@@ -82,10 +81,25 @@ def boot():
                       ),
     ]
     summary_type_answer = inquirer.prompt(summary_type_question)
-
-    print(language_answer, summary_type_answer)
-    YOUTUBE_VIDEO_URL = input("Please, enter the URL of the YouTube video you want to summarize: ")
+    youtube_url_prompt = {
+        'English': "Please, enter the URL of the YouTube video you want to summarize: ",
+        'Spanish': "Por favor, introduce la URL del video de YouTube que quieres resumir: ",
+        'French': "Veuillez entrer l'URL de la vidéo YouTube que vous souhaitez résumer : ",
+        'German': "Bitte geben Sie die URL des YouTube-Videos ein, das Sie zusammenfassen möchten: ",
+        'Italian': "Per favore, inserisci l'URL del video di YouTube che vuoi riassumere: ",
+    }
+    YOUTUBE_VIDEO_URL = input(youtube_url_prompt[language_answer['language']])
     download_youtube_video(YOUTUBE_VIDEO_URL, OUTPUT_AUDIO)
     transcript = transcribe_audio(OUTPUT_AUDIO)
-    summary = summarize_text(transcript)
-    print(f'Summary for the Youtube Video:\n{summary}')
+    
+    summary = summarize_text(transcript, language_answer['language'], summary_type_answer['summary_type'])
+    print(f'\n\n--------------------------\n{summary}')
+    continue_prompt = {
+        'English': "Do you want to summarize another video? (y/n): ",
+        'Spanish': "¿Quieres resumir otro video? (s/n): ",
+        'French': "Voulez-vous résumer une autre vidéo ? (o/n) : ",
+        'German': "Möchten Sie ein weiteres Video zusammenfassen? (j/n): ",
+        'Italian': "Vuoi riassumere un altro video? (s/n): ",
+    }
+    continue_answer = input(continue_prompt[language_answer['language']])
+    return continue_answer.lower() == 'y'
