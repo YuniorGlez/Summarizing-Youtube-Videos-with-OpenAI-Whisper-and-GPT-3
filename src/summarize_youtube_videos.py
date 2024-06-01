@@ -2,6 +2,7 @@ import os
 from pytube import YouTube
 from openai import OpenAI
 from pathlib import Path
+import inquirer
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL')
@@ -50,6 +51,39 @@ def summarize_text(transcript):
     return summary
 
 def boot():
+    language_question = [
+        inquirer.List('language',
+                      message="What language do you prefer for the summaries?",
+                      choices=['English', 'Spanish', 'French', 'German', 'Italian'],
+                      ),
+    ]
+    language_answer = inquirer.prompt(language_question)
+
+    summary_type_question = {
+        'English': "What type of summary do you prefer?",
+        'Spanish': "¿Qué tipo de resumen prefieres?",
+        'French': "Quel type de résumé préférez-vous?",
+        'German': "Welche Art von Zusammenfassung bevorzugen Sie?",
+        'Italian': "Che tipo di riassunto preferisci?",
+    }
+
+    summary_type_choices = {
+        'English': ['With lists', 'Very short', 'More extensive', 'Formal', 'Informal'],
+        'Spanish': ['Con listas', 'Muy cortos', 'Más extensos', 'Formales', 'Informales'],
+        'French': ['Avec des listes', 'Très court', 'Plus étendu', 'Formel', 'Informel'],
+        'German': ['Mit Listen', 'Sehr kurz', 'Umfangreicher', 'Formell', 'Informell'],
+        'Italian': ['Con liste', 'Molto corto', 'Più esteso', 'Formale', 'Informale'],
+    }
+
+    summary_type_question = [
+        inquirer.List('summary_type',
+                      message=summary_type_question[language_answer['language']],
+                      choices=summary_type_choices[language_answer['language']],
+                      ),
+    ]
+    summary_type_answer = inquirer.prompt(summary_type_question)
+
+    print(language_answer, summary_type_answer)
     YOUTUBE_VIDEO_URL = input("Please, enter the URL of the YouTube video you want to summarize: ")
     download_youtube_video(YOUTUBE_VIDEO_URL, OUTPUT_AUDIO)
     transcript = transcribe_audio(OUTPUT_AUDIO)
