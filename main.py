@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
-from src.summarize_youtube_videos import boot
 load_dotenv()  # take environment variables from .env.
+
+from src.summarize_youtube_videos import boot
 
 if __name__ == '__main__':
     while True:
